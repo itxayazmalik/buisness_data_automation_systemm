@@ -1,0 +1,2 @@
+# HTML files won't count toward language stats
+*.html linguist-documentation
