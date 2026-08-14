@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Customer #{{ customer.id }}{% endblock %}
+{% block page_title %}Customer Details{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8 col-xl-6">
+        <div class="card">
+            <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-person-badge me-2 text-primary"></i>Customer #{{ customer.id }}
+                </h5>
+                <div class="d-flex gap-1">
+                    <a href="{{ url_for('edit_customer', customer_id=customer.id) }}"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-pencil-square me-1"></i> Edit
+                    </a>
+                    <button type="button"
+                            class="btn btn-sm btn-outline-danger"
+                            data-bs-toggle="modal" data-bs-target="#deleteModal"
+                            data-customer-id="{{ customer.id }}"
+                            data-customer-name="{{ customer.name }}">
+                        <i class="bi bi-trash me-1"></i> Delete
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">ID</span>
+                        <span class="detail-value">#{{ customer.id }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Name</span>
+                        <span class="detail-value fw-semibold">{{ customer.name }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Email</span>
+                        <span class="detail-value">
+                            {{ customer.email }}
+                            {% if not customer.email or is_valid_email(customer.email) is false %}
+                            <span class="badge badge-soft-danger ms-1">invalid</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Phone</span>
+                        <span class="detail-value">{{ customer.phone or "—" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">City</span>
+                        <span class="detail-value">
+                            <span class="badge badge-soft-primary">{{ customer.city or "—" }}</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer d-flex justify-content-end">
+                <a href="{{ url_for('customers') }}" class="btn btn-light">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Customers
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ------------------------------------------------------------------ #}
+{# Delete confirmation modal                                           #}
+{# ------------------------------------------------------------------ #}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Delete Customer
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete <strong id="deleteCustomerName">this customer</strong>?
+                This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="" id="deleteForm">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

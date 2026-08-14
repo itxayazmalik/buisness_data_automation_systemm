@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+        <h1 class="page-heading">Overview</h1>
+        <p class="page-subtitle text-muted mb-0">Business data at a glance — monitor your customer records in real&nbsp;time.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('reports') }}" class="btn btn-outline-primary">
+            <i class="bi bi-bar-chart-line me-1"></i> View Reports
+        </a>
+        <a href="{{ url_for('add_customer') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Add Customer
+        </a>
+    </div>
+</div>
+
+{# ------------------------------------------------------------------ #}
+{# Stat cards                                                          #}
+{# ------------------------------------------------------------------ #}
+<div class="row g-3 g-lg-4 stat-row">
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-primary-soft text-primary">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div class="stat-meta">
+                <span class="stat-label">Total Customers</span>
+                <span class="stat-value">{{ stats.total_customers }}</span>
+                <span class="stat-change text-primary"><i class="bi bi-graph-up-arrow"></i> live</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-violet-soft text-violet">
+                <i class="bi bi-geo-alt-fill"></i>
+            </div>
+            <div class="stat-meta">
+                <span class="stat-label">Total Cities</span>
+                <span class="stat-value">{{ stats.total_cities }}</span>
+                <span class="stat-change text-violet"><i class="bi bi-globe2"></i> coverage</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-amber-soft text-amber">
+                <i class="bi bi-files"></i>
+            </div>
+            <div class="stat-meta">
+                <span class="stat-label">Duplicate Records</span>
+                <span class="stat-value">{{ stats.duplicate_records }}</span>
+                <span class="stat-change text-amber"><i class="bi bi-exclamation-triangle-fill"></i> needs review</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-danger-soft text-danger">
+                <i class="bi bi-envelope-exclamation-fill"></i>
+            </div>
+            <div class="stat-meta">
+                <span class="stat-label">Invalid Emails</span>
+                <span class="stat-value">{{ stats.invalid_emails }}</span>
+                <span class="stat-change text-danger"><i class="bi bi-x-circle-fill"></i> fix required</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ------------------------------------------------------------------ #}
+{# Recent customers                                                    #}
+{# ------------------------------------------------------------------ #}
+<div class="card mt-4">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <h5 class="card-title mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Recent Customers</h5>
+        <a href="{{ url_for('customers') }}" class="btn btn-sm btn-outline-primary">View all <i class="bi bi-arrow-right ms-1"></i></a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>City</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in recent_customers %}
+                <tr>
+                    <td class="text-muted">{{ customer.id }}</td>
+                    <td class="fw-semibold">{{ customer.name }}</td>
+                    <td>{{ customer.email }}</td>
+                    <td class="text-muted">{{ customer.phone or "—" }}</td>
+                    <td><span class="badge badge-soft-primary">{{ customer.city or "—" }}</span></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        No customers yet. Seed the database with sample data to get started.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

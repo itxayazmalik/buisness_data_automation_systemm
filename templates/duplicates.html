@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Duplicate Detection{% endblock %}
+{% block page_title %}Duplicate Records{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+        <h1 class="page-heading">Duplicate Detection</h1>
+        <p class="page-subtitle text-muted mb-0">
+            Records grouped by a shared email address. Keep the entry you want and remove the rest.
+        </p>
+    </div>
+    {% if groups %}
+    <form method="post" action="{{ url_for('duplicates') }}"
+          onsubmit="return confirm('Remove all duplicate records, keeping the earliest entry for each email?')">
+        <input type="hidden" name="action" value="remove_all">
+        <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash me-1"></i> Remove All Duplicates
+        </button>
+    </form>
+    {% endif %}
+</div>
+
+{# ------------------------------------------------------------------ #}
+{# Summary cards                                                       #}
+{# ------------------------------------------------------------------ #}
+<div class="row g-3 g-lg-4 mt-1">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-amber-soft text-amber"><i class="bi bi-copy"></i></div>
+            <div class="stat-meta">
+                <span class="stat-label">Duplicate Groups</span>
+                <span class="stat-value">{{ summary.groups }}</span>
+                <span class="stat-change text-amber"><i class="bi bi-files"></i> emails</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-primary-soft text-primary"><i class="bi bi-layers"></i></div>
+            <div class="stat-meta">
+                <span class="stat-label">Duplicate Records</span>
+                <span class="stat-value">{{ summary.duplicate_records }}</span>
+                <span class="stat-change text-primary"><i class="bi bi-collection"></i> rows</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-danger-soft text-danger"><i class="bi bi-trash3"></i></div>
+            <div class="stat-meta">
+                <span class="stat-label">Records to Remove</span>
+                <span class="stat-value">{{ summary.removable }}</span>
+                <span class="stat-change text-danger"><i class="bi bi-exclamation-diamond"></i> action</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-violet-soft text-violet"><i class="bi bi-check2-circle"></i></div>
+            <div class="stat-meta">
+                <span class="stat-label">Clean Records</span>
+                <span class="stat-value">{{ summary.clean_records }}</span>
+                <span class="stat-change text-violet"><i class="bi bi-database-check"></i> unique</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ------------------------------------------------------------------ #}
+{# Duplicate groups                                                    #}
+{# ------------------------------------------------------------------ #}
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="bi bi-files me-2 text-primary"></i>Duplicate Records</h5>
+    </div>
+
+    {% if not groups %}
+    <div class="card-body">
+        <div class="alert alert-success d-flex align-items-center gap-2 mb-0" role="alert">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>No duplicate records found. Every email address is unique.</span>
+        </div>
+    </div>
+    {% else %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th style="width:70px">ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>City</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for group in groups %}
+                <tr class="dup-group">
+                    <td colspan="6">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <i class="bi bi-files text-amber"></i>
+                            <span class="fw-semibold text-truncate">{{ group.email }}</span>
+                            <span class="badge bg-amber-soft text-amber">{{ group.count }} records</span>
+                            <span class="text-muted small">keeps #{{ group.keep_id }}</span>
+                            <form method="post" action="{{ url_for('duplicates') }}" class="ms-auto"
+                                  onsubmit="return confirm('Keep record #{{ group.keep_id }} and remove the other {{ group.count - 1 }} duplicate(s)?')">
+                                <input type="hidden" name="action" value="keep_group">
+                                <input type="hidden" name="email" value="{{ group.email }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-eraser me-1"></i> Keep #{{ group.keep_id }}, remove {{ group.count - 1 }}
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% for record in group.records %}
+                <tr class="{{ 'table-warning' if record.id == group.keep_id else '' }}">
+                    <td class="text-muted">
+                        #{{ record.id }}
+                        {% if record.id == group.keep_id %}
+                        <span class="badge badge-soft-success ms-1">keep</span>
+                        {% endif %}
+                    </td>
+                    <td class="fw-semibold">{{ record.name }}</td>
+                    <td>{{ record.email }}</td>
+                    <td class="text-muted">{{ record.phone or "—" }}</td>
+                    <td><span class="badge badge-soft-primary">{{ record.city or "—" }}</span></td>
+                    <td class="text-end">
+                        <form method="post" action="{{ url_for('duplicates') }}" class="d-inline"
+                              onsubmit="return confirm('Remove record #{{ record.id }} ({{ record.name }})?')">
+                            <input type="hidden" name="action" value="remove_single">
+                            <input type="hidden" name="record_id" value="{{ record.id }}">
+                            <button type="submit" class="btn btn-sm btn-icon-action text-danger"
+                                    title="Remove this record" data-bs-toggle="tooltip">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+
+<div class="alert alert-light border mt-4 mb-0" role="alert">
+    <i class="bi bi-info-circle me-1 text-primary"></i>
+    The row highlighted in yellow is the <strong>earliest entry</strong> (lowest ID) and is kept by default when
+    using the group or bulk removal actions. You can still remove it individually if needed.
+</div>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Customers{% endblock %}
+{% block page_title %}Customers{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+        <h1 class="page-heading">Customers</h1>
+        <p class="page-subtitle text-muted mb-0">{{ total }} record{{ 's' if total != 1 else '' }} in the system.</p>
+    </div>
+    <a href="{{ url_for('add_customer') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> Add Customer
+    </a>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">
+        <div class="row g-2 align-items-center">
+            <div class="col-12 col-md">
+                <h5 class="card-title mb-0"><i class="bi bi-people me-2 text-primary"></i>All Customers</h5>
+            </div>
+            <div class="col-12 col-md-auto">
+                <form method="get" action="{{ url_for('customers') }}" role="search">
+                    <div class="input-group input-group-sm">
+                        <input type="search" name="q" value="{{ query }}" class="form-control"
+                               placeholder="Search name, email, phone, city…" aria-label="Search customers">
+                        <button class="btn btn-primary" type="submit" aria-label="Search">
+                            <i class="bi bi-search"></i>
+                        </button>
+                        {% if query %}
+                        <a href="{{ url_for('customers') }}" class="btn btn-light" aria-label="Clear search">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>City</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers %}
+                <tr>
+                    <td class="text-muted">#{{ customer.id }}</td>
+                    <td class="fw-semibold">{{ customer.name }}</td>
+                    <td>{{ customer.email }}</td>
+                    <td class="text-muted">{{ customer.phone or "—" }}</td>
+                    <td><span class="badge badge-soft-primary">{{ customer.city or "—" }}</span></td>
+                    <td class="text-end">
+                        <div class="d-inline-flex gap-1">
+                            <a href="{{ url_for('view_customer', customer_id=customer.id) }}"
+                               class="btn btn-sm btn-icon-action" title="View" data-bs-toggle="tooltip">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ url_for('edit_customer', customer_id=customer.id) }}"
+                               class="btn btn-sm btn-icon-action text-warning" title="Edit" data-bs-toggle="tooltip">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <button type="button"
+                                    class="btn btn-sm btn-icon-action text-danger"
+                                    title="Delete"
+                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                    data-customer-id="{{ customer.id }}"
+                                    data-customer-name="{{ customer.name }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-5">
+                        {% if query %}
+                        No customers match "<strong>{{ query }}</strong>".
+                        {% else %}
+                        No customers found yet.
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if pages > 1 %}
+    <div class="card-footer d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <span class="text-muted small">
+            Page {{ page }} of {{ pages }} · {{ total }} record{{ 's' if total != 1 else '' }}
+        </span>
+        <nav aria-label="Customer pages">
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item {{ 'disabled' if page <= 1 }}">
+                    <a class="page-link" href="{{ url_for('customers', q=query, page=page-1) }}" aria-label="Previous">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                {% for p in page_range %}
+                <li class="page-item {{ 'active' if p == page else '' }}">
+                    <a class="page-link" href="{{ url_for('customers', q=query, page=p) }}">{{ p }}</a>
+                </li>
+                {% endfor %}
+                <li class="page-item {{ 'disabled' if page >= pages }}">
+                    <a class="page-link" href="{{ url_for('customers', q=query, page=page+1) }}" aria-label="Next">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+{# ------------------------------------------------------------------ #}
+{# Delete confirmation modal                                           #}
+{# ------------------------------------------------------------------ #}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Delete Customer
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete <strong id="deleteCustomerName">this customer</strong>?
+                This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="" id="deleteForm">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

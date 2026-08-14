@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Data Cleaning Center{% endblock %}
+{% block page_title %}Data Cleanup{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+        <h1 class="page-heading">Data Cleaning Center</h1>
+        <p class="page-subtitle text-muted mb-0">
+            Inspect and repair data quality issues across your customer records.
+        </p>
+    </div>
+    <form method="post" action="{{ url_for('clean') }}" onsubmit="return confirm('Run the cleaning pipeline now?')">
+        <button type="submit" class="btn btn-primary" {% if not issues.has_issues and not report %}disabled{% endif %}>
+            <i class="bi bi-magic me-1"></i> Run Cleaning
+        </button>
+    </form>
+</div>
+
+<div class="row g-4 mt-1">
+    {# ------------------------------------------------------------------ #}
+    {# Operations list                                                    #}
+    {# ------------------------------------------------------------------ #}
+    <div class="col-12 col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-tools me-2 text-primary"></i>What Gets Cleaned</h5>
+            </div>
+            <div class="card-body">
+                <ul class="clean-list mb-0">
+                    <li>
+                        <span class="clean-icon bg-primary-soft text-primary"><i class="bi bi-arrows-collapse"></i></span>
+                        <span><strong>Remove extra spaces</strong><small>Trim leading/trailing whitespace and collapse multiple spaces in all fields.</small></span>
+                    </li>
+                    <li>
+                        <span class="clean-icon bg-violet-soft text-violet"><i class="bi bi-lowercase"></i></span>
+                        <span><strong>Lowercase emails</strong><small>Convert every email address to lowercase for consistent matching.</small></span>
+                    </li>
+                    <li>
+                        <span class="clean-icon bg-amber-soft text-amber"><i class="bi bi-building"></i></span>
+                        <span><strong>Standardize city names</strong><small>Trim and title-case city names, e.g. "NEW YORK" → "New York".</small></span>
+                    </li>
+                    <li>
+                        <span class="clean-icon bg-danger-soft text-danger"><i class="bi bi-trash3"></i></span>
+                        <span><strong>Remove empty rows</strong><small>Delete records where both the name and email are blank.</small></span>
+                    </li>
+                    <li>
+                        <span class="clean-icon bg-primary-soft text-primary"><i class="bi bi-search"></i></span>
+                        <span><strong>Detect missing values</strong><small>Count blank cells in name, email, phone, and city for the report.</small></span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    {# ------------------------------------------------------------------ #}
+    {# Detected issues (preview)                                          #}
+    {# ------------------------------------------------------------------ #}
+    <div class="col-12 col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-activity me-2 text-primary"></i>Current Data Quality</h5>
+            </div>
+            <div class="card-body">
+                <div class="quality-summary mb-3">
+                    <span class="quality-record">{{ issues.total_records }}</span>
+                    <span class="quality-record-label">records in the database</span>
+                </div>
+
+                {% if issues.has_issues %}
+                <ul class="issue-list mb-0">
+                    <li><i class="bi bi-dot"></i><span><strong>{{ issues.missing_values }}</strong> missing values
+                        <small class="text-muted">(name {{ issues.missing_by_column.name }}, email {{ issues.missing_by_column.email }}, phone {{ issues.missing_by_column.phone }}, city {{ issues.missing_by_column.city }})</small></span></li>
+                    <li><i class="bi bi-dot"></i><span><strong>{{ issues.empty_rows }}</strong> empty rows found</span></li>
+                    <li><i class="bi bi-dot"></i><span><strong>{{ issues.emails_not_lowercase }}</strong> emails not lowercase</span></li>
+                    <li><i class="bi bi-dot"></i><span><strong>{{ issues.extra_spaces }}</strong> cells with extra spaces</span></li>
+                    <li><i class="bi bi-dot"></i><span><strong>{{ issues.cities_nonstandard }}</strong> city names to standardize</span></li>
+                </ul>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-check-circle-fill text-success fs-3"></i>
+                    <p class="mb-0 mt-2">No data quality issues detected. The database is clean.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ------------------------------------------------------------------ #}
+{# Cleaning report (after a run)                                       #}
+{# ------------------------------------------------------------------ #}
+{% if report %}
+<div class="mt-4">
+    <h2 class="h5 fw-bold mb-3"><i class="bi bi-clipboard2-check me-2 text-primary"></i>Cleaning Report</h2>
+    <div class="row g-3 g-lg-4">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary-soft text-primary"><i class="bi bi-brush"></i></div>
+                <div class="stat-meta">
+                    <span class="stat-label">Records Cleaned</span>
+                    <span class="stat-value">{{ report.records_cleaned }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-amber-soft text-amber"><i class="bi bi-exclamation-circle"></i></div>
+                <div class="stat-meta">
+                    <span class="stat-label">Missing Values Found</span>
+                    <span class="stat-value">{{ report.missing_values }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-violet-soft text-violet"><i class="bi bi-wrench-adjustable"></i></div>
+                <div class="stat-meta">
+                    <span class="stat-label">Formatting Fixed</span>
+                    <span class="stat-value">{{ report.formatting_fixed }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-danger-soft text-danger"><i class="bi bi-trash3"></i></div>
+                <div class="stat-meta">
+                    <span class="stat-label">Empty Rows Removed</span>
+                    <span class="stat-value">{{ report.empty_rows_removed }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0"><i class="bi bi-list-check me-2 text-primary"></i>Details</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Operation</th>
+                        <th class="text-end">Cells Fixed</th>
+                        <th class="text-end">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="fw-semibold">Remove extra spaces</td>
+                        <td class="text-end">{{ report.spaces_fixed }}</td>
+                        <td class="text-end">{% if report.spaces_fixed %}<span class="badge badge-soft-primary">done</span>{% else %}<span class="text-muted small">—</span>{% endif %}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-semibold">Convert emails to lowercase</td>
+                        <td class="text-end">{{ report.emails_lowercased }}</td>
+                        <td class="text-end">{% if report.emails_lowercased %}<span class="badge badge-soft-primary">done</span>{% else %}<span class="text-muted small">—</span>{% endif %}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-semibold">Standardize city names</td>
+                        <td class="text-end">{{ report.cities_standardized }}</td>
+                        <td class="text-end">{% if report.cities_standardized %}<span class="badge badge-soft-primary">done</span>{% else %}<span class="text-muted small">—</span>{% endif %}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-semibold">Remove empty rows</td>
+                        <td class="text-end">{{ report.empty_rows_removed }}</td>
+                        <td class="text-end">{% if report.empty_rows_removed %}<span class="badge badge-soft-primary">done</span>{% else %}<span class="text-muted small">—</span>{% endif %}</td>
+                    </tr>
+                    <tr class="table-light fw-semibold">
+                        <td>Total records: before → after</td>
+                        <td class="text-end">{{ report.total_before }} → {{ report.total_after }}</td>
+                        <td class="text-end"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

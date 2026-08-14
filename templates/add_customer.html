@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Add Customer{% endblock %}
+{% block page_title %}Add Customer{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8 col-xl-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-person-plus me-2 text-primary"></i>New Customer
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('add_customer') }}" novalidate>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="name" class="form-label">
+                                Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control {{ 'is-invalid' if form.get('name_error') }}"
+                                   id="name" name="name"
+                                   value="{{ form.name or '' }}"
+                                   placeholder="Full name" required autofocus>
+                            {% if form.get('name_error') %}
+                            <div class="invalid-feedback">{{ form.name_error }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label for="email" class="form-label">
+                                Email <span class="text-danger">*</span>
+                            </label>
+                            <input type="email"
+                                   class="form-control {{ 'is-invalid' if form.get('email_error') }}"
+                                   id="email" name="email"
+                                   value="{{ form.email or '' }}"
+                                   placeholder="name@example.com" required>
+                            {% if form.get('email_error') %}
+                            <div class="invalid-feedback">{{ form.email_error }}</div>
+                            {% else %}
+                            <div class="form-text">Must be unique — duplicate emails are not allowed.</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="phone" class="form-label">Phone</label>
+                            <input type="tel" class="form-control" id="phone" name="phone"
+                                   value="{{ form.phone or '' }}" placeholder="+92 300 1234567">
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="city" class="form-label">City</label>
+                            <input type="text" class="form-control" id="city" name="city"
+                                   value="{{ form.city or '' }}" placeholder="Karachi">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="{{ url_for('customers') }}" class="btn btn-light">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i> Save Customer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

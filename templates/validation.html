@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Validation Center{% endblock %}
+{% block page_title %}Validation Center{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-heading">Validation Center</h1>
+    <p class="page-subtitle text-muted mb-0">
+        Live checks against {{ report.total_records }} records for email format, phone format, and missing fields.
+    </p>
+</div>
+
+{# ------------------------------------------------------------------ #}
+{# Summary cards                                                       #}
+{# ------------------------------------------------------------------ #}
+<div class="row g-3 g-lg-4 mt-1">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-primary-soft text-primary"><i class="bi bi-database"></i></div>
+            <div class="stat-meta">
+                <span class="stat-label">Total Records</span>
+                <span class="stat-value">{{ report.total_records }}</span>
+                <span class="stat-change text-primary"><i class="bi bi-collection"></i> scanned</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-danger-soft text-danger"><i class="bi bi-envelope-exclamation"></i></div>
+            <div class="stat-meta">
+                <span class="stat-label">Invalid Emails</span>
+                <span class="stat-value">{{ report.invalid_emails|length }}</span>
+                <span class="stat-change text-danger"><i class="bi bi-x-circle"></i> flagged</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-amber-soft text-amber"><i class="bi bi-telephone-x"></i></div>
+            <div class="stat-meta">
+                <span class="stat-label">Invalid Phones</span>
+                <span class="stat-value">{{ report.invalid_phones|length }}</span>
+                <span class="stat-change text-amber"><i class="bi bi-exclamation-triangle"></i> flagged</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-violet-soft text-violet"><i class="bi bi-patch-question"></i></div>
+            <div class="stat-meta">
+                <span class="stat-label">Missing Records</span>
+                <span class="stat-value">{{ report.missing_records|length }}</span>
+                <span class="stat-change text-violet"><i class="bi bi-dash-circle"></i> incomplete</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ------------------------------------------------------------------ #}
+{# Invalid emails                                                      #}
+{# ------------------------------------------------------------------ #}
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-envelope-exclamation me-2 text-danger"></i>Invalid Emails
+            <span class="badge badge-soft-danger ms-2">{{ report.invalid_emails|length }}</span>
+        </h5>
+    </div>
+    {% if report.invalid_emails %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>City</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in report.invalid_emails %}
+                <tr>
+                    <td class="text-muted">#{{ record.id }}</td>
+                    <td class="fw-semibold">{{ record.name }}</td>
+                    <td><span class="badge badge-soft-danger">{{ record.email }}</span></td>
+                    <td class="text-muted">{{ record.city or "—" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body">
+        <div class="alert alert-success d-flex align-items-center gap-2 mb-0" role="alert">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>All email addresses are valid.</span>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{# ------------------------------------------------------------------ #}
+{# Invalid phones                                                      #}
+{# ------------------------------------------------------------------ #}
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-telephone-x me-2 text-amber"></i>Invalid Phone Numbers
+            <span class="badge bg-amber-soft text-amber ms-2">{{ report.invalid_phones|length }}</span>
+        </h5>
+    </div>
+    {% if report.invalid_phones %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>City</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in report.invalid_phones %}
+                <tr>
+                    <td class="text-muted">#{{ record.id }}</td>
+                    <td class="fw-semibold">{{ record.name }}</td>
+                    <td><span class="badge bg-amber-soft text-amber">{{ record.phone }}</span></td>
+                    <td class="text-muted">{{ record.city or "—" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body">
+        <div class="alert alert-success d-flex align-items-center gap-2 mb-0" role="alert">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>All phone numbers look valid.</span>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{# ------------------------------------------------------------------ #}
+{# Missing data                                                        #}
+{# ------------------------------------------------------------------ #}
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-patch-question me-2 text-violet"></i>Records with Missing Fields
+            <span class="badge badge-soft-violet ms-2">{{ report.missing_records|length }}</span>
+        </h5>
+    </div>
+    {% if report.missing_records %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>City</th>
+                    <th>Missing</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in report.missing_records %}
+                <tr>
+                    <td class="text-muted">#{{ record.id }}</td>
+                    <td class="fw-semibold">{{ record.name or "—" }}</td>
+                    <td>{{ record.email or "—" }}</td>
+                    <td class="text-muted">{{ record.phone or "—" }}</td>
+                    <td><span class="badge badge-soft-primary">{{ record.city or "—" }}</span></td>
+                    <td>
+                        {% for field in record.missing %}
+                        <span class="badge badge-soft-danger text-capitalize">{{ field }}</span>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body">
+        <div class="alert alert-success d-flex align-items-center gap-2 mb-0" role="alert">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>No records are missing required fields.</span>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
